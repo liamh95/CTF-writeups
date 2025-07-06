@@ -244,7 +244,7 @@ if __name__ == '__main__':
     key = construct_structured_key('5c54700231f4727bf7d49234e7bbb1c9')
     flag_ct = bytes.fromhex('692f09e677335f6152655f67304e6e40141fa702e7e5b95b46756e63298d80a9bcbbd95465795f21ef0a')
     nonce_guess = bytes.fromhex('000010000000000000000000')
-    K4 = struct.unpack('<I', key[16:20])[0]
+    K4 = struct.unpack('<I', key[16:20])[0] #little-endian
 
 
     keystream_0 = bytes_to_words(xor(flag_ct[:4], b'CTF{'))[0]
