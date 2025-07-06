@@ -15,7 +15,7 @@ We're given a few files.
 
 I spent way too much time on this challenge because I didn't know that the compiled python file could be decompiled.
 It  wasn't until after the competition that I found [PyLingual](https://pylingual.io/).
-Still, even without the source code, it was evident that we're trying find the nonce and/or counter that were used to encrypt the flag (using some block cipher in [counter mode](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_(CTR))) since we can still encrypt messages by running the compiled python file
+Still, even without the source code, it was evident that we're trying find the nonce and/or counter that were used to encrypt the flag (using some block cipher in [counter mode](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_(CTR))) since we can still encrypt messages by running the compiled python file.
 
 Looking at the output in `ctf_challenge_package.json`, one thing that jumps out is that all of the ciphertexts look pretty similar even though they all have different nonce-counter pairs -- something that shouldn't happen when using a secure cipher.
 Even more, it looks like some of the flag plaintext leaks through the ciphertext.
@@ -64,7 +64,8 @@ Once we have the counter, we can recreate the keystream and then XOR with the ci
 ---
 ## Reversing the quarter-round
 After calling `mix_bits(state, 0, 4, 8, 12)`, the value of the first 32-bit word in the keystream is `rotl32(add32(K4, rotl32(CTR, 16)), 12)`.
-Since `rotl123(rotl(a, k), 32-k) = a`, we can easily undo this transformation to recover `CTR`.
+Then we add this to 0 mod 2^32 to get the first 32 bits of keystream, so we can just work with this.
+Since `rotl123(rotl(a, k), 32-k) = a`, we can easily undo the quarter round to recover `CTR`.
 The `solve.py` script does this, and then recreates the keystream block using the given key and an arbitrary nonce.
 Then just XOR with the ciphertext to get the flag.
 This is all done with the provied `get_bytes()` function.
