@@ -1,6 +1,5 @@
 from sage.all import *
 from Crypto.Util.number import long_to_bytes, bytes_to_long
-import random
 
 p = 0x225fd
 
@@ -20,19 +19,16 @@ print('Shifting matrices...')
 A_tilde_values = [tuple((i * inv) % p for i in row) for row in A_values]
 b_tilde_values = [(i - 55776) * inv % p for i in b_values]
 
-# now bb = AA * S + ee, for ee in {-1, -0, 1}^52
-
-
 
 A_tilde= matrix(ZZ, A_tilde_values)
 b_tilde = vector(ZZ, b_tilde_values)
 
-M_aug = A_tilde.augment(matrix(ZZ, b_tilde).T * -1).augment(p * identity_matrix(ZZ, 52))
+M_aug = A_tilde.augment(matrix(ZZ, b_tilde).T).augment(p * identity_matrix(ZZ, 52))
 
 print('Running BKZ...')
 M = M_aug.T.BKZ(block_size=15)
 
-# hopefully, -e_tilde is the shortest vector in the rows of M
+# hopefully, e_tilde is the shortest vector in the rows of M
 # find it by looking for a row whose only entries are in {-1, 0, 1}
 
 print('Looking for -e_tilde...')
@@ -40,14 +36,13 @@ for row in M:
     if all(x == 0 for x in row):
          continue
     if all(x in [-1, 0, 1] for x in row):
-        minus_e_tilde =  vector(ZZ, row)
+        plus_minus_e_tilde =  vector(ZZ, row)
         break
 
 
 print('Solving for s...')
 F = GF(p)
-diff = vector(F, b_tilde) - vector(F, minus_e_tilde)
-#A_tilde.change_ring(F)
+diff = vector(F, b_tilde) - vector(F, plus_minus_e_tilde)
 s = A_tilde.change_ring(F).solve_right(diff)
 
 # reconstruct flag from s
